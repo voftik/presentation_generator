@@ -280,7 +280,7 @@ class SmartPresentationGenerator:
     def generate_smart_presentation(self) -> bool:
         """Полный цикл умной генерации презентации"""
         print("🧠 УМНЫЙ ГЕНЕРАТОР ПРЕЗЕНТАЦИЙ")
-        print("Полный цикл: Оптимизация → Валидация → Улучшение → Второй слой → AI-Изображения → Тестирование")
+        print("Полный цикл: Оптимизация → Валидация → Улучшение → Второй слой → Тестирование (без изображений)")
         print("=" * 80)
         
         # Проверяем наличие исходного файла
@@ -304,8 +304,11 @@ class SmartPresentationGenerator:
         if not self.step4_enhance_layer2():
             return False
         
-        # Шаг 5: Генерация AI-изображений
-        images_added = self.step5_generate_images()
+        # Пропускаем Шаг 5: Генерация AI-изображений
+        print("\n🖼️ ШАГ 5: ГЕНЕРАЦИЯ AI-ИЗОБРАЖЕНИЙ")
+        print("=" * 60)
+        print("⏭️ Пропускаем генерацию изображений по запросу")
+        images_added = True  # Считаем успешным
         
         # Шаг 7: Тестирование качества
         quality_passed = self.step7_test_quality()
