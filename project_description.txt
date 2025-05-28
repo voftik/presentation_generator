@@ -1,0 +1,241 @@
+# Архитектура программы автоматического создания PowerPoint презентации
+
+## 1. Общая архитектура
+
+### Компоненты системы:
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    PowerPoint Generator                         │
+├─────────────────────────────────────────────────────────────────┤
+│  Input:                                                         │
+│  • content1.rtf (структурированный контент)                     │
+│  • template1.potm (шаблон презентации)                         │
+│                                                                 │
+│  Processing:                                                    │
+│  • RTF Parser (извлечение заголовков и контента)               │
+│  • Content Processor (обработка и структурирование)            │
+│  • PowerPoint Engine (создание слайдов)                        │
+│                                                                 │
+│  Output:                                                        │
+│  • final_presentation.pptx (готовая презентация)               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Технологический стек:
+- **Язык:** Python 3.8+
+- **Основные библиотеки:**
+  - `python-pptx` - работа с PowerPoint
+  - `striprtf` - парсинг RTF файлов
+  - `python-docx` - дополнительная обработка документов
+  - `pathlib` - работа с путями файлов
+
+## 2. Детальная архитектура модулей
+
+### 2.1 RTF Parser Module
+```python
+class RTFParser:
+    """Парсинг RTF файла и извлечение структуры"""
+
+    def parse_rtf(self, file_path: str) -> Dict
+    def extract_headings(self, content: str) -> List[Heading]
+    def extract_content(self, content: str) -> List[ContentBlock]
+    def build_slide_structure(self) -> List[SlideData]
+```
+
+**Задачи модуля:**
+- Чтение RTF файла с сохранением форматирования
+- Распознавание заголовков (Heading 1, Heading 2)
+- Извлечение текстового контента под каждым заголовком
+- Структурирование данных для создания слайдов
+
+### 2.2 Content Processor Module
+```python
+class ContentProcessor:
+    """Обработка и оптимизация контента для слайдов"""
+
+    def process_slide_content(self, content: str) -> ProcessedContent
+    def split_long_content(self, content: str) -> List[str]
+    def format_bullet_points(self, content: str) -> List[str]
+    def extract_key_phrases(self, content: str) -> List[str]
+    def optimize_for_slide(self, content: str) -> str
+```
+
+**Задачи модуля:**
+- Оптимизация длины текста для слайдов
+- Форматирование маркированных списков
+- Выделение ключевых фраз и тезисов
+- Разбиение длинного контента на несколько слайдов
+
+### 2.3 PowerPoint Engine Module
+```python
+class PowerPointEngine:
+    """Создание и настройка PowerPoint презентации"""
+
+    def load_template(self, template_path: str) -> Presentation
+    def create_slide(self, slide_data: SlideData) -> Slide
+    def apply_formatting(self, slide: Slide, style: StyleConfig) -> None
+    def add_content_to_slide(self, slide: Slide, content: ProcessedContent) -> None
+    def save_presentation(self, output_path: str) -> None
+```
+
+**Задачи модуля:**
+- Загрузка и использование шаблона POTM
+- Создание слайдов с правильными макетами
+- Применение форматирования и стилей
+- Добавление контента с сохранением дизайна
+
+### 2.4 Main Controller
+```python
+class PresentationGenerator:
+    """Главный контроллер процесса"""
+
+    def __init__(self, config: Config)
+    def generate_presentation(self) -> bool
+    def validate_inputs(self) -> bool
+    def process_content(self) -> List[SlideData]
+    def create_slides(self, slides_data: List[SlideData]) -> None
+```
+
+## 3. Структура данных
+
+### 3.1 SlideData Class
+```python
+@dataclass
+class SlideData:
+    title: str
+    content: List[str]
+    slide_type: str  # title, content, section_header
+    formatting: Dict[str, Any]
+    order: int
+```
+
+### 3.2 ProcessedContent Class
+```python
+@dataclass
+class ProcessedContent:
+    main_points: List[str]
+    details: List[str]
+    formatting_hints: Dict[str, str]
+    slide_layout: str
+```
+
+### 3.3 Config Class
+```python
+@dataclass
+class Config:
+    input_rtf_path: str = "/Users/NVE/Documents/my_program/goznak_adhoc/content/content1.rtf"
+    template_path: str = "/Users/NVE/Documents/my_program/goznak_adhoc/template/template1.potm"
+    output_path: str = "/Users/NVE/Documents/my_program/goznak_adhoc/output/"
+    max_slides: int = 100
+    max_text_per_slide: int = 500
+```
+
+## 4. Пошаговый план реализации
+
+### Этап 1: Настройка окружения (15 минут)
+```bash
+# Создание виртуального окружения
+python3 -m venv venv
+source venv/bin/activate
+
+# Установка зависимостей
+pip install python-pptx striprtf python-docx pathlib2
+```
+
+### Этап 2: Создание базовой структуры (20 минут)
+1. Создать директорию проекта
+2. Создать основные файлы модулей
+3. Настроить конфигурацию и константы
+4. Создать базовые классы данных
+
+### Этап 3: Реализация RTF Parser (30 минут)
+1. Парсинг RTF файла
+2. Извлечение заголовков разных уровней
+3. Сегментация контента по слайдам
+4. Тестирование на вашем файле
+
+### Этап 4: Реализация Content Processor (25 минут)
+1. Оптимизация длины текста
+2. Форматирование списков и структуры
+3. Выделение ключевых моментов
+4. Адаптация под слайдовый формат
+
+### Этап 5: Реализация PowerPoint Engine (40 минут)
+1. Загрузка и работа с POTM шаблоном
+2. Создание слайдов разных типов
+3. Применение форматирования
+4. Сохранение финальной презентации
+
+### Этап 6: Интеграция и тестирование (20 минут)
+1. Соединение всех модулей
+2. Тестирование на полном файле
+3. Отладка и оптимизация
+4. Финальная проверка
+
+## 5. Структура файлов проекта
+
+```
+/Users/NVE/Documents/my_program/goznak_adhoc/
+├── src/
+│   ├── __init__.py
+│   ├── rtf_parser.py
+│   ├── content_processor.py
+│   ├── powerpoint_engine.py
+│   ├── main_controller.py
+│   └── data_models.py
+├── content/
+│   └── content1.rtf
+├── template/
+│   └── template1.potm
+├── output/
+│   └── (generated presentations)
+├── config/
+│   └── settings.py
+├── tests/
+│   └── test_main.py
+├── requirements.txt
+├── main.py
+└── README.md
+```
+
+## 6. Ключевые особенности решения
+
+### Умная обработка контента:
+- Автоматическое разбиение длинных текстов
+- Сохранение иерархии заголовков
+- Интеллектуальное форматирование списков
+
+### Гибкость настройки:
+- Легкая смена шаблонов
+- Настраиваемые параметры генерации
+- Возможность кастомизации стилей
+
+### Надежность:
+- Валидация входных данных
+- Обработка ошибок
+- Логирование процесса
+
+## 7. Запуск программы
+
+### Простой запуск:
+```bash
+cd /Users/NVE/Documents/my_program/goznak_adhoc/
+python main.py
+```
+
+### Запуск с параметрами:
+```bash
+python main.py --input content/content1.rtf --template template/template1.potm --output output/my_presentation.pptx
+```
+
+## 8. Ожидаемые результаты
+
+После запуска программа создаст:
+- **100 слайдов** с содержимым из RTF файла
+- **Применение шаблона** template1.potm ко всем слайдам
+- **Корректное форматирование** заголовков и контента
+- **Оптимизированный текст** для слайдового формата
+- **Готовую презентацию** в формате PPTX
+
+## Время реализации: ~2.5 часа
+## Время запуска: ~1-2 минуты
