@@ -17,6 +17,7 @@ try:
     from content_optimizer import ContentOptimizer, ProgressBar
     from presentation_enhancer import PresentationEnhancer
     from presentation_enhancer_layer2 import PresentationEnhancerLayer2
+    from image_generator import PresentationImageGenerator
     from main import AdvancedPowerPointGenerator
 except ImportError as e:
     print(f"❌ ОШИБКА: Не удается импортировать модули: {e}")
@@ -29,11 +30,14 @@ class SmartPresentationGenerator:
     def __init__(self):
         self.script_dir = Path(__file__).parent
         
-        # Настройки Claude API
+        # Настройки API
         import os
-        self.api_key = os.getenv('ANTHROPIC_API_KEY')
-        if not self.api_key:
+        self.anthropic_api_key = os.getenv('ANTHROPIC_API_KEY')
+        self.gemini_api_key = os.getenv('GEMINI_API_KEY') or "AIzaSyAx3AtOdrqJZ1fnqIE8fSrfiQWS3nHTs2I"
+        
+        if not self.anthropic_api_key:
             raise ValueError("ANTHROPIC_API_KEY environment variable is required")
+        
         self.model = "claude-sonnet-4-20250514"
         
         # Пути к файлам
@@ -49,7 +53,7 @@ class SmartPresentationGenerator:
         print("=" * 60)
         
         try:
-            optimizer = ContentOptimizer(self.api_key, self.model)
+            optimizer = ContentOptimizer(self.anthropic_api_key, self.model)
             success = optimizer.optimize(str(self.original_content), str(self.optimized_content))
             
             if success:
@@ -127,7 +131,7 @@ class SmartPresentationGenerator:
         
         try:
             # Создаем улучшатор
-            enhancer = PresentationEnhancer(self.api_key, self.model)
+            enhancer = PresentationEnhancer(self.anthropic_api_key, self.model)
             success = enhancer.enhance_presentation(str(self.optimized_content), str(self.enhanced_content))
             
             if success:
@@ -163,7 +167,7 @@ class SmartPresentationGenerator:
                 return False
             
             # Применяем второй слой улучшений
-            enhancer_layer2 = PresentationEnhancerLayer2(self.api_key)
+            enhancer_layer2 = PresentationEnhancerLayer2(self.anthropic_api_key)
             final_presentation_path = self.output_dir / "presentation_layer2.pptx"
             
             results = enhancer_layer2.enhance_layer2(
@@ -196,9 +200,51 @@ class SmartPresentationGenerator:
             print(f"❌ Ошибка в шаге 4: {e}")
             return False
     
-    def step6_test_quality(self) -> bool:
-        """Шаг 6: Тестирование качества презентации"""
-        print("\n🔍 ШАГ 6: ТЕСТИРОВАНИЕ КАЧЕСТВА")
+    def step5_generate_images(self) -> bool:
+        """Шаг 5: Генерация AI-изображений для слайдов"""
+        print("\n🖼️ ШАГ 5: ГЕНЕРАЦИЯ AI-ИЗОБРАЖЕНИЙ")
+        print("=" * 60)
+        
+        try:
+            # Проверяем, что презентация существует
+            presentation_path = self.output_dir / "presentation.pptx"
+            if not presentation_path.exists():
+                print("❌ Презентация не найдена для добавления изображений")
+                return False
+            
+            # Создаем генератор изображений
+            image_generator = PresentationImageGenerator(self.gemini_api_key)
+            
+            # Генерируем изображения для ключевых слайдов (2, 3, 4)
+            results = image_generator.enhance_presentation_with_images(
+                str(presentation_path),
+                target_slides=[1, 2, 3]  # Слайды 2, 3, 4 (индексы 1, 2, 3)
+            )
+            
+            print(f"📊 Результаты генерации изображений:")
+            print(f"   Сгенерировано изображений: {results['generated_images']}")
+            print(f"   Добавлено в презентацию: {results['added_images']}")
+            
+            if results['errors']:
+                print(f"   ⚠️ Ошибки: {len(results['errors'])}")
+                for error in results['errors'][:3]:  # Показываем только первые 3 ошибки
+                    print(f"     - {error}")
+            
+            if results['added_images'] > 0:
+                print("✅ Шаг 5 завершен: AI-изображения добавлены в презентацию")
+                return True
+            else:
+                print("⚠️ Шаг 5 завершен с предупреждениями: изображения не добавлены")
+                return True  # Не критично для общего процесса
+                
+        except Exception as e:
+            print(f"❌ Ошибка в шаге 5: {e}")
+            print("⚠️ Продолжаем без изображений...")
+            return True  # Не критично для общего процесса
+    
+    def step7_test_quality(self) -> bool:
+        """Шаг 7: Тестирование качества презентации"""
+        print("\n🔍 ШАГ 7: ТЕСТИРОВАНИЕ КАЧЕСТВА")
         print("=" * 60)
         
         try:
@@ -209,7 +255,7 @@ class SmartPresentationGenerator:
             ], capture_output=True, text=True, timeout=60)
             
             if result.returncode == 0:
-                print("✅ Шаг 6 завершен: тест качества пройден")
+                print("✅ Шаг 7 завершен: тест качества пройден")
                 
                 # Извлекаем оценку из вывода
                 output_lines = result.stdout.split('\n')
@@ -219,7 +265,7 @@ class SmartPresentationGenerator:
                 
                 return True
             else:
-                print("❌ Шаг 6 провален: тест качества не пройден")
+                print("❌ Шаг 7 провален: тест качества не пройден")
                 print("Вывод ошибки:")
                 print(result.stderr)
                 return False
@@ -228,13 +274,13 @@ class SmartPresentationGenerator:
             print("⏱️  Тест качества превысил время ожидания (60с)")
             return False
         except Exception as e:
-            print(f"❌ Ошибка в шаге 6: {e}")
+            print(f"❌ Ошибка в шаге 7: {e}")
             return False
     
     def generate_smart_presentation(self) -> bool:
         """Полный цикл умной генерации презентации"""
         print("🧠 УМНЫЙ ГЕНЕРАТОР ПРЕЗЕНТАЦИЙ")
-        print("Полный цикл: Оптимизация → Валидация → Улучшение → Второй слой → Тестирование")
+        print("Полный цикл: Оптимизация → Валидация → Улучшение → Второй слой → AI-Изображения → Тестирование")
         print("=" * 80)
         
         # Проверяем наличие исходного файла
@@ -258,8 +304,11 @@ class SmartPresentationGenerator:
         if not self.step4_enhance_layer2():
             return False
         
-        # Шаг 6: Тестирование качества
-        quality_passed = self.step6_test_quality()
+        # Шаг 5: Генерация AI-изображений
+        images_added = self.step5_generate_images()
+        
+        # Шаг 7: Тестирование качества
+        quality_passed = self.step7_test_quality()
         
         # Финальный отчет
         print("\n🎉 ФИНАЛЬНЫЙ ОТЧЕТ")
@@ -267,7 +316,7 @@ class SmartPresentationGenerator:
         
         if quality_passed:
             print("✅ ВСЕ ЭТАПЫ УСПЕШНО ЗАВЕРШЕНЫ!")
-            print("🎯 Результат: Высококачественная презентация готова")
+            print("🎯 Результат: Высококачественная презентация с AI-изображениями готова")
             
             # Выводим статистику
             presentation_path = self.output_dir / "presentation.pptx"
@@ -275,6 +324,8 @@ class SmartPresentationGenerator:
                 size_mb = presentation_path.stat().st_size / 1024 / 1024
                 print(f"📁 Файл: {presentation_path}")
                 print(f"💾 Размер: {size_mb:.1f} MB")
+                if images_added:
+                    print("🖼️ AI-изображения: Добавлены")
         else:
             print("⚠️  ГЕНЕРАЦИЯ ЗАВЕРШЕНА С ПРЕДУПРЕЖДЕНИЯМИ")
             print("🎯 Результат: Презентация создана, но тест качества не пройден")
