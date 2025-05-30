@@ -4,29 +4,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Python application that automatically generates PowerPoint presentations from RTF content files using PowerPoint templates. The system parses structured RTF documents, processes the content, and creates formatted slides using a provided POTM template.
+This is an AI-powered Python application that automatically generates professional PowerPoint presentations from Markdown content using AI optimization and PowerPoint templates. The system features multi-layered AI processing with Claude for content optimization and Gemini + Imagen 3.0 for image generation.
 
 ### Core Architecture
 
-The system consists of four main modules:
-- **RTF Parser**: Extracts headings and content from RTF files, preserving document structure
-- **Content Processor**: Optimizes text for slide format, handles bullet points, and splits long content
-- **PowerPoint Engine**: Creates slides using POTM templates and applies formatting
-- **Main Controller**: Orchestrates the entire process from input to output
+The system consists of five main modules:
+- **Content Optimizer**: Uses Claude AI to optimize and reduce large content (300+ slides to ~60)
+- **Presentation Enhancer**: Expert-level AI improvement of key slides with specialized prompts
+- **Layer 2 Enhancer**: Final optimization of titles, text, and visual layout
+- **Image Generator**: AI-powered contextual image generation using Gemini + Imagen 3.0
+- **PowerPoint Engine**: Creates slides using PPTX templates with advanced formatting
 
 ### Key Components
 
-- Input: `content/content1` (RTF file with structured content)
-- Template: `tempate/tempate1.potm` (PowerPoint template - note the typo in directory name)
-- Processing: Python modules for parsing, content optimization, and slide generation
-- Output: Generated PPTX presentations
+- Input: `content/content.md` (Markdown file with structured content)
+- Template: `tempate/Шаблон презентации 16х9.pptx` (PowerPoint template - note the typo in directory name)
+- Processing: Multi-stage AI optimization and presentation generation
+- Output: Professional PPTX presentations with AI-generated images
 
 ### Data Flow
 
-1. RTF file is parsed to extract headings (Heading 1, Heading 2) and associated content
-2. Content is processed and optimized for slide format (max 500 chars per slide)
-3. Slides are created using the POTM template with proper formatting
-4. Final presentation is saved as PPTX
+1. Markdown content is AI-optimized using Claude API (reduces volume by 80-85%)
+2. Key slides are enhanced with expert-level analysis and recommendations
+3. Titles and layout are optimized in a second enhancement layer
+4. Contextual images are generated using Gemini + Imagen 3.0
+5. Final presentation is assembled with professional formatting
 
 ## Development Commands
 
@@ -36,37 +38,60 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Install dependencies
-pip install python-pptx striprtf python-docx pathlib2
+pip install -r requirements.txt
 
-# Run the application
-python main.py
+# Set environment variables
+export ANTHROPIC_API_KEY="your-anthropic-api-key"
+export GEMINI_API_KEY="your-gemini-api-key"
 
-# Run with custom parameters
-python main.py --input content/content1 --template tempate/tempate1.potm --output output/presentation.pptx
+# Run full automated pipeline
+python smart_generator.py
+
+# Run individual modules
+python content_optimizer.py      # AI content optimization
+python presentation_enhancer.py  # Expert enhancement layer 1
+python presentation_enhancer_layer2.py  # Enhancement layer 2
+python image_generator.py        # AI image generation
+python main.py                   # Presentation generation
+python test_presentation.py      # Quality testing
 ```
+
+## API Configuration
+
+The system requires API keys from:
+- **Anthropic Claude API** - For content optimization and enhancement
+- **Google Gemini API** - For AI image generation with Imagen 3.0
+
+Default model: `claude-sonnet-4-20250514` (most advanced model for content analysis)
 
 ## Project Structure
 
-The planned structure includes:
-- `src/` - Core modules (rtf_parser.py, content_processor.py, powerpoint_engine.py, main_controller.py, data_models.py)
-- `content/` - Input RTF files
+Current implementation includes:
+- `content/` - Input Markdown files and optimized versions
 - `tempate/` - PowerPoint templates (note: directory name has typo)
-- `output/` - Generated presentations
-- `config/` - Configuration settings
-- `tests/` - Test files
+- `result/` - Generated presentations and images
+- Root level Python modules for each processing stage
+
+## File Processing Pipeline
+
+1. `content.md` → `content_optimized.md` (AI optimization)
+2. `content_optimized.md` → `content_enhanced.md` (Expert enhancement)
+3. `content_enhanced.md` → `presentation.pptx` (Slide generation)
+4. `presentation.pptx` → Enhanced with AI images (Image generation)
 
 ## Configuration
 
-Default configuration expects:
-- Input RTF: `/Users/NVE/Documents/my_program/goznak_adhoc/content/content1`
-- Template: `/Users/NVE/Documents/my_program/goznak_adhoc/tempate/tempate1.potm`
-- Output directory: `/Users/NVE/Documents/my_program/goznak_adhoc/output/`
-- Max slides: 100
-- Max text per slide: 500 characters
+Default paths:
+- Input: `content/content.md`
+- Template: `tempate/Шаблон презентации 16х9.pptx`
+- Output: `result/presentation.pptx`
+- Max slides: ~60 (optimized from 300+)
+- Text optimization: Expert-level content for executives
 
 ## Important Notes
 
 - The template directory is named `tempate/` (missing 'l') - maintain this naming for consistency
-- RTF content file lacks extension but is in RTF format (version 1, ANSI, code page 1251)
-- System is designed to handle Russian/Cyrillic content (code page 1251)
-- Target output is approximately 100 slides from structured RTF content
+- System handles Russian/Cyrillic content with proper encoding
+- AI models use high creativity (temperature 0.9) for expert-level content
+- Image generation targets key slides for maximum visual impact
+- Final presentations include alternating text alignment and dynamic layouts
